@@ -102,7 +102,7 @@ func (mod ArpSpoofer) Name() string {
 }
 
 func (mod ArpSpoofer) Description() string {
-	return "Keep spoofing selected hosts on the network."
+	return "Spoof yourself as the gateway of the network. Gateway addresses are taken from gateway.*"
 }
 
 func (mod ArpSpoofer) Author() string {

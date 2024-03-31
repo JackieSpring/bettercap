@@ -3,6 +3,7 @@ package modules
 import (
 	"github.com/bettercap/bettercap/modules/any_proxy"
 	"github.com/bettercap/bettercap/modules/api_rest"
+	"github.com/bettercap/bettercap/modules/arp_reply"
 	"github.com/bettercap/bettercap/modules/arp_spoof"
 	"github.com/bettercap/bettercap/modules/ble"
 	"github.com/bettercap/bettercap/modules/c2"
@@ -37,6 +38,7 @@ import (
 
 func LoadModules(sess *session.Session) {
 	sess.Register(any_proxy.NewAnyProxy(sess))
+	sess.Register(arp_reply.NewArpReplyer(sess))
 	sess.Register(arp_spoof.NewArpSpoofer(sess))
 	sess.Register(api_rest.NewRestAPI(sess))
 	sess.Register(ble.NewBLERecon(sess))
