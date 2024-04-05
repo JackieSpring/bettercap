@@ -24,7 +24,7 @@ func ArpUpdate(iface string) (ArpTable, error) {
 	arpWasParsed = true
 
 	// Run "arp -an" (darwin) or "ip neigh" (linux) and parse the output
-	output, err := core.Exec(ArpCmd, ArpCmdOpts)
+	output, err := core.Exec(ArpCmd, ArpCmdOpts) // TODO: Fucking serious?
 	if err != nil {
 		return arpTable, err
 	}
@@ -38,7 +38,7 @@ func ArpUpdate(iface string) (ArpTable, error) {
 			ifIndex := ArpTableTokenIndex[2]
 
 			address := m[ipIndex]
-			mac := m[hwIndex]
+			mac := NormalizeMac(m[hwIndex])
 			ifname := iface
 
 			if ifIndex != -1 {

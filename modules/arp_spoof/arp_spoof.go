@@ -12,12 +12,6 @@ import (
 
 type ArpReplyer struct {
 	session.SessionModule
-	/*
-		addresses   []net.IP
-		macs        []net.HardwareAddr
-		wAddresses  []net.IP
-		wMacs       []net.HardwareAddr
-	*/
 	aliasMac      net.HardwareAddr
 	spoofAddress  net.IP
 	spoofMac      net.HardwareAddr
@@ -31,12 +25,6 @@ type ArpReplyer struct {
 func NewArpReplyer(s *session.Session) *ArpReplyer {
 	mod := &ArpReplyer{
 		SessionModule: session.NewSessionModule("arp.spoof", s),
-		/*
-			addresses:     make([]net.IP, 0),
-			macs:          make([]net.HardwareAddr, 0),
-			wAddresses:    make([]net.IP, 0),
-			wMacs:         make([]net.HardwareAddr, 0),
-		*/
 		aliasMac:      nil,
 		spoofAddress:  nil,
 		spoofMac:      nil,
