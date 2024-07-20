@@ -87,7 +87,7 @@ func NewUDP(src *network.Endpoint, dst *network.Endpoint, dstPort uint16) (ret g
 		return nil, err
 	}
 
-	udp.SetNetworkLayerForChecksum(ip.(gopacket.NetworkLayer))
+	udp.(*layers.UDP).SetNetworkLayerForChecksum(ip.(*layers.IPv4))
 
 	ret_bld.AddLayer(ip)
 	ret_bld.AddLayer(udp)

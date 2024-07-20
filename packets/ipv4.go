@@ -3,38 +3,35 @@ package packets
 import (
 	"fmt"
 
-	net "github.com/bettercap/bettercap/network"
+	"github.com/bettercap/bettercap/network"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 )
 
-const (
-	IPv4_TTL_DEFAULT = 64
-	IPv4_VERSION     = 4
-)
+type LayerConfIP struct {
+	LayerConf
+	Src  *network.Endpoint
+	Dst  *network.Endpoint
+	Next layers.IPProtocol
+}
 
-func NewIPv4(src *net.Endpoint, dst *net.Endpoint, next layers.IPProtocol) (gopacket.Packet, error) {
+func NewIPLayer(c LayerConf) (gopacket.Packet, error) {
 
-	eth, err := NewEthernetLayer(src, dst, layers.EthernetTypeIPv4)
-	if err != nil {
-		return nil, err
+	conf := c.(LayerConfIP)
+
+	if conf.Src.IP.To4() != nil && conf.Dst.IP.To4() != nil {
+		return NewIPv4Layer(c)
 	}
-
-	ip, err := NewIPv4Layer(src, dst, next)
-	if err != nil {
-		return nil, err
-	}
-
-	err, raw := Serialize(&eth, &ip)
-	if err != nil {
-		return nil, err
-	}
-
-	return gopacket.NewPacket(raw, layers.LayerTypeEthernet, gopacket.Default), nil
 
 }
 
-func NewIPv4Layer(src *net.Endpoint, dst *net.Endpoint, next layers.IPProtocol) (ret layers.IPv4, err error) {
+func NewIPv4Layer(c LayerConf) (ret layers.IPv4, err error) {
+
+	conf := c.(LayerConfIP)
+	src := conf.Src
+	dst := conf.Dst
+	next := conf.Next
+
 	if src == nil || dst == nil {
 		return ret, fmt.Errorf("illegal argument: NewIPv4Layer: missing src or dst")
 	}
