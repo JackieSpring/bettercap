@@ -1,9 +1,21 @@
 package packets
 
 import (
-	"github.com/google/gopacket/layers"
+	"fmt"
 	"net"
+
+	"github.com/bettercap/bettercap/network"
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
 )
+
+const UDP_PORT_DEFAULT = 12345
+
+type LayerConfUDP struct {
+	LayerConf
+	srcPort uint16
+	dstPort uint16
+}
 
 func NewUDPProbe(from net.IP, from_hw net.HardwareAddr, to net.IP, port int) (error, []byte) {
 	eth := layers.Ethernet{
@@ -13,7 +25,7 @@ func NewUDPProbe(from net.IP, from_hw net.HardwareAddr, to net.IP, port int) (er
 	}
 
 	udp := layers.UDP{
-		SrcPort: layers.UDPPort(12345),
+		SrcPort: layers.UDPPort(UDP_PORT_DEFAULT),
 		DstPort: layers.UDPPort(port),
 	}
 	udp.Payload = []byte{0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef}
@@ -43,4 +55,52 @@ func NewUDPProbe(from net.IP, from_hw net.HardwareAddr, to net.IP, port int) (er
 
 		return Serialize(&eth, &ip4, &udp)
 	}
+}
+
+func NewUDP(src *network.Endpoint, dst *network.Endpoint, dstPort uint16) (ret gopacket.Packet, err error) {
+
+	if ret, err = NewEthernet(src, dst, layers.EthernetTypeIPv4); err != nil {
+		return nil, err
+	}
+	ret_bld := ret.(gopacket.PacketBuilder)
+
+	var ip gopacket.Layer
+	var ipv4 layers.IPv4
+	var ipv6 layers.IPv6
+
+	if src.IP.To4() != nil && dst.IP.To4() != nil {
+		ipv4, err = NewIPv4Layer(src, dst, layers.IPProtocolUDP)
+		ip = &ipv4
+	} else if src.IP.To16() != nil && dst.IP.To16() != nil {
+		ipv6, err = NewIPv6Layer(src, dst, layers.IPProtocolUDP)
+		ip = &ipv6
+	} else {
+		return nil, fmt.Errorf("illegal argument: NewUDP: IP address type missmatch")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	udp, err := NewUDPLayer(UDP_PORT_DEFAULT, dstPort)
+	if err != nil {
+		return nil, err
+	}
+
+	udp.SetNetworkLayerForChecksum(ip.(gopacket.NetworkLayer))
+
+	ret_bld.AddLayer(ip)
+	ret_bld.AddLayer(udp)
+
+	return ret, nil
+}
+
+func NewUDPLayer(c LayerConf) (ret gopacket.Layer, err error) {
+	conf := c.(LayerConfUDP)
+
+	udp := ret.(*layers.UDP)
+	udp.DstPort = layers.UDPPort(conf.dstPort)
+	udp.SrcPort = layers.UDPPort(conf.srcPort)
+
+	return udp, nil
 }
